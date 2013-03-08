@@ -5,7 +5,7 @@ module MT940
     attr_accessor :bank
 
     def self.transactions(file)
-      file  = File.open(file) if file.is_a?(String) 
+      file  = File.open(file) if file.is_a?(String)
       if file.is_a?(File) || file.is_a?(Tempfile)
         first_line  = file.readline
         second_line = file.readline unless file.eof?
@@ -88,7 +88,23 @@ module MT940
     end
 
     def parse_date(string)
-      Date.new(2000 + string[0..1].to_i, string[2..3].to_i, string[4..5].to_i) if string
+      if string
+        year = string[0..1].to_i + 2000
+        month = string[2..3].to_i
+        day = string[4..5].to_i
+        retry_count = 0
+        begin
+          Date.new(year, month, day)
+        rescue Exception => e
+          day -= 1
+          retry_count += 1
+          if retry_count <= 5
+            retry
+          else
+            raise e
+          end
+        end
+      end
     end
 
     def parse_contra_account
